@@ -1,9 +1,10 @@
-import type { PublicClient, WalletClient } from 'viem';
+import type { PublicClient, WalletClient, Hex, TransactionReceipt } from 'viem';
 import { createPublicClient, createWalletClient, http, custom } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { abi } from './abi/letsPayV1';
+import { waitForProxyReceipt } from './tx-receipt';
 import { ensureKyc, KycCache } from './kyc';
-import type { BrowserConfig, HexAddress, NodeConfig } from './types';
+import type { BrowserConfig, HexAddress, NodeConfig, TransactionReceiptWaitOptions } from './types';
 
 type ReadParams = { requireKyc?: boolean };
 
@@ -95,10 +96,14 @@ export class LetsPayPayments {
     return invoke();
   }
 
-  async signup() {
-    return this.guardedWrite(() =>
+  async signup(opts?: { waitForReceipt?: TransactionReceiptWaitOptions }): Promise<Hex | TransactionReceipt> {
+    const hash = await this.guardedWrite(() =>
       this.walletClient.writeContract({ address: this.proxyAddress, abi, functionName: 'signup', args: [] })
     );
+    if (opts?.waitForReceipt !== undefined) {
+      return waitForProxyReceipt(this.publicClient, hash, opts.waitForReceipt);
+    }
+    return hash;
   }
 
   async fundContract(params: { value: bigint }) {
