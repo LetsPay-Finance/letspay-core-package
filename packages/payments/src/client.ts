@@ -2,6 +2,14 @@ import type { PublicClient, WalletClient } from 'viem';
 import { createPublicClient, createWalletClient, http, custom } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { abi } from './abi/letsPayV1';
+import {
+  estimateAcceptGasUnits,
+  estimateCancelEscrowGasUnits,
+  estimateCreateEscrowGasUnits,
+  estimateFundContractGasUnits,
+  estimateRepayCreditGasUnits,
+  estimateSignupGasUnits,
+} from './gas-estimates';
 import { ensureKyc, KycCache } from './kyc';
 import type { BrowserConfig, HexAddress, NodeConfig } from './types';
 
@@ -86,6 +94,36 @@ export class LetsPayPayments {
   }
   async balance(): Promise<bigint> {
     return this.publicClient.getBalance({ address: this.proxyAddress });
+  }
+
+  // Gas previews (no on-chain submission; uses viem `estimateContractGas`)
+  async estimateSignupGas(): Promise<bigint> {
+    return estimateSignupGasUnits(this.publicClient, this.walletClient, this.proxyAddress);
+  }
+
+  async estimateFundContractGas(params: { value: bigint }): Promise<bigint> {
+    return estimateFundContractGasUnits(this.publicClient, this.walletClient, this.proxyAddress, params.value);
+  }
+
+  async estimateRepayCreditGas(params: { value: bigint }): Promise<bigint> {
+    return estimateRepayCreditGasUnits(this.publicClient, this.walletClient, this.proxyAddress, params.value);
+  }
+
+  async estimateCreateEscrowGas(params: {
+    merchant: HexAddress;
+    otherParticipants: HexAddress[];
+    otherShares: bigint[];
+    total: bigint;
+  }): Promise<bigint> {
+    return estimateCreateEscrowGasUnits(this.publicClient, this.walletClient, this.proxyAddress, params);
+  }
+
+  async estimateAcceptGas(params: { escrowId: bigint }): Promise<bigint> {
+    return estimateAcceptGasUnits(this.publicClient, this.walletClient, this.proxyAddress, params.escrowId);
+  }
+
+  async estimateCancelEscrowGas(params: { escrowId: bigint }): Promise<bigint> {
+    return estimateCancelEscrowGasUnits(this.publicClient, this.walletClient, this.proxyAddress, params.escrowId);
   }
 
   // Writes (KYC enforced)

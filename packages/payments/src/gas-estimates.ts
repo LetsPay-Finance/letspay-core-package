@@ -1,10 +1,10 @@
 import type { PublicClient, WalletClient } from 'viem';
 import { abi } from './abi/letsPayV1';
-import type { HexAddress } from './types';
+import { ConfigError, type HexAddress } from './types';
 
 async function requireAccount(walletClient: WalletClient) {
   const account = walletClient.account;
-  if (!account) throw new Error('Wallet client has no account bound');
+  if (!account) throw new ConfigError('Wallet client has no account bound');
   return account;
 }
 
@@ -38,5 +38,70 @@ export async function estimateFundContractGasUnits(
     args: [],
     account,
     value,
+  });
+}
+
+export async function estimateRepayCreditGasUnits(
+  publicClient: PublicClient,
+  walletClient: WalletClient,
+  proxyAddress: HexAddress,
+  value: bigint,
+): Promise<bigint> {
+  const account = await requireAccount(walletClient);
+  return publicClient.estimateContractGas({
+    address: proxyAddress,
+    abi,
+    functionName: 'repayCredit',
+    args: [],
+    account,
+    value,
+  });
+}
+
+export async function estimateCreateEscrowGasUnits(
+  publicClient: PublicClient,
+  walletClient: WalletClient,
+  proxyAddress: HexAddress,
+  params: { merchant: HexAddress; otherParticipants: HexAddress[]; otherShares: bigint[]; total: bigint },
+): Promise<bigint> {
+  const account = await requireAccount(walletClient);
+  return publicClient.estimateContractGas({
+    address: proxyAddress,
+    abi,
+    functionName: 'createEscrow',
+    args: [params.merchant, params.otherParticipants, params.otherShares, params.total],
+    account,
+  });
+}
+
+export async function estimateAcceptGasUnits(
+  publicClient: PublicClient,
+  walletClient: WalletClient,
+  proxyAddress: HexAddress,
+  escrowId: bigint,
+): Promise<bigint> {
+  const account = await requireAccount(walletClient);
+  return publicClient.estimateContractGas({
+    address: proxyAddress,
+    abi,
+    functionName: 'accept',
+    args: [escrowId],
+    account,
+  });
+}
+
+export async function estimateCancelEscrowGasUnits(
+  publicClient: PublicClient,
+  walletClient: WalletClient,
+  proxyAddress: HexAddress,
+  escrowId: bigint,
+): Promise<bigint> {
+  const account = await requireAccount(walletClient);
+  return publicClient.estimateContractGas({
+    address: proxyAddress,
+    abi,
+    functionName: 'cancelEscrow',
+    args: [escrowId],
+    account,
   });
 }
