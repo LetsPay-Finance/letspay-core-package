@@ -116,8 +116,14 @@ export class LetsPayPayments {
     return hash;
   }
 
-  async createEscrow(params: { merchant: HexAddress; otherParticipants: HexAddress[]; otherShares: bigint[]; total: bigint }) {
-    return this.guardedWrite(() =>
+  async createEscrow(params: {
+    merchant: HexAddress;
+    otherParticipants: HexAddress[];
+    otherShares: bigint[];
+    total: bigint;
+    waitForReceipt?: TransactionReceiptWaitOptions;
+  }): Promise<Hex | TransactionReceipt> {
+    const hash = await this.guardedWrite(() =>
       this.walletClient.writeContract({
         address: this.proxyAddress,
         abi,
@@ -125,18 +131,30 @@ export class LetsPayPayments {
         args: [params.merchant, params.otherParticipants, params.otherShares, params.total],
       })
     );
+    if (params.waitForReceipt !== undefined) {
+      return waitForProxyReceipt(this.publicClient, hash, params.waitForReceipt);
+    }
+    return hash;
   }
 
-  async accept(params: { escrowId: bigint }) {
-    return this.guardedWrite(() =>
+  async accept(params: { escrowId: bigint; waitForReceipt?: TransactionReceiptWaitOptions }): Promise<Hex | TransactionReceipt> {
+    const hash = await this.guardedWrite(() =>
       this.walletClient.writeContract({ address: this.proxyAddress, abi, functionName: 'accept', args: [params.escrowId] })
     );
+    if (params.waitForReceipt !== undefined) {
+      return waitForProxyReceipt(this.publicClient, hash, params.waitForReceipt);
+    }
+    return hash;
   }
 
-  async cancelEscrow(params: { escrowId: bigint }) {
-    return this.guardedWrite(() =>
+  async cancelEscrow(params: { escrowId: bigint; waitForReceipt?: TransactionReceiptWaitOptions }): Promise<Hex | TransactionReceipt> {
+    const hash = await this.guardedWrite(() =>
       this.walletClient.writeContract({ address: this.proxyAddress, abi, functionName: 'cancelEscrow', args: [params.escrowId] })
     );
+    if (params.waitForReceipt !== undefined) {
+      return waitForProxyReceipt(this.publicClient, hash, params.waitForReceipt);
+    }
+    return hash;
   }
 
   async repayCredit(params: { value: bigint; waitForReceipt?: TransactionReceiptWaitOptions }): Promise<Hex | TransactionReceipt> {
