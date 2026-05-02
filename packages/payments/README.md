@@ -68,6 +68,18 @@ const sdk = LetsPayPayments.fromNode({
 await sdk.fundContract({ value: 100000000n });
 ```
 
+## Transaction receipts
+
+All proxy writes return a transaction `hash` by default. Pass `waitForReceipt` to block until viem reports a `TransactionReceipt` (useful for UI flows that need a mined block):
+
+```ts
+const receipt = await sdk.signup({
+  waitForReceipt: { confirmations: 1, pollingInterval: 3_000, timeoutMs: 180_000 },
+});
+```
+
+The same option exists on `fundContract`, `repayCredit`, `createEscrow`, `accept`, and `cancelEscrow` when you need deterministic follow-up reads.
+
 ## API
 
 See `src/client.ts` for full list of methods.
