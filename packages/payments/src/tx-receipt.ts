@@ -4,6 +4,7 @@ import type { TransactionReceiptWaitOptions } from './types';
 
 /**
  * Waits until the given transaction hash is included with the requested confirmations.
+ * Thin wrapper around viem's `waitForTransactionReceipt` with LetsPay-friendly defaults.
  */
 export async function waitForProxyReceipt(
   publicClient: PublicClient,

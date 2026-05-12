@@ -96,6 +96,9 @@ export class LetsPayPayments {
     return invoke();
   }
 
+  /** Register the current wallet with the proxy. Pass `waitForReceipt` to await a mined receipt instead of only the tx hash. */
+  async signup(): Promise<Hex>;
+  async signup(opts: { waitForReceipt: TransactionReceiptWaitOptions }): Promise<TransactionReceipt>;
   async signup(opts?: { waitForReceipt?: TransactionReceiptWaitOptions }): Promise<Hex | TransactionReceipt> {
     const hash = await this.guardedWrite(() =>
       this.walletClient.writeContract({ address: this.proxyAddress, abi, functionName: 'signup', args: [] })
@@ -106,6 +109,8 @@ export class LetsPayPayments {
     return hash;
   }
 
+  async fundContract(params: { value: bigint }): Promise<Hex>;
+  async fundContract(params: { value: bigint; waitForReceipt: TransactionReceiptWaitOptions }): Promise<TransactionReceipt>;
   async fundContract(params: { value: bigint; waitForReceipt?: TransactionReceiptWaitOptions }): Promise<Hex | TransactionReceipt> {
     const hash = await this.guardedWrite(() =>
       this.walletClient.writeContract({ address: this.proxyAddress, abi, functionName: 'fundContract', args: [], value: params.value })
@@ -116,6 +121,19 @@ export class LetsPayPayments {
     return hash;
   }
 
+  async createEscrow(params: {
+    merchant: HexAddress;
+    otherParticipants: HexAddress[];
+    otherShares: bigint[];
+    total: bigint;
+  }): Promise<Hex>;
+  async createEscrow(params: {
+    merchant: HexAddress;
+    otherParticipants: HexAddress[];
+    otherShares: bigint[];
+    total: bigint;
+    waitForReceipt: TransactionReceiptWaitOptions;
+  }): Promise<TransactionReceipt>;
   async createEscrow(params: {
     merchant: HexAddress;
     otherParticipants: HexAddress[];
@@ -137,6 +155,8 @@ export class LetsPayPayments {
     return hash;
   }
 
+  async accept(params: { escrowId: bigint }): Promise<Hex>;
+  async accept(params: { escrowId: bigint; waitForReceipt: TransactionReceiptWaitOptions }): Promise<TransactionReceipt>;
   async accept(params: { escrowId: bigint; waitForReceipt?: TransactionReceiptWaitOptions }): Promise<Hex | TransactionReceipt> {
     const hash = await this.guardedWrite(() =>
       this.walletClient.writeContract({ address: this.proxyAddress, abi, functionName: 'accept', args: [params.escrowId] })
@@ -147,6 +167,8 @@ export class LetsPayPayments {
     return hash;
   }
 
+  async cancelEscrow(params: { escrowId: bigint }): Promise<Hex>;
+  async cancelEscrow(params: { escrowId: bigint; waitForReceipt: TransactionReceiptWaitOptions }): Promise<TransactionReceipt>;
   async cancelEscrow(params: { escrowId: bigint; waitForReceipt?: TransactionReceiptWaitOptions }): Promise<Hex | TransactionReceipt> {
     const hash = await this.guardedWrite(() =>
       this.walletClient.writeContract({ address: this.proxyAddress, abi, functionName: 'cancelEscrow', args: [params.escrowId] })
@@ -157,6 +179,8 @@ export class LetsPayPayments {
     return hash;
   }
 
+  async repayCredit(params: { value: bigint }): Promise<Hex>;
+  async repayCredit(params: { value: bigint; waitForReceipt: TransactionReceiptWaitOptions }): Promise<TransactionReceipt>;
   async repayCredit(params: { value: bigint; waitForReceipt?: TransactionReceiptWaitOptions }): Promise<Hex | TransactionReceipt> {
     const hash = await this.guardedWrite(() =>
       this.walletClient.writeContract({ address: this.proxyAddress, abi, functionName: 'repayCredit', args: [], value: params.value })
