@@ -53,4 +53,11 @@ export type ExplorerChainConfig = {
   txUrlTemplate: string;
 };
 
+/** Options passed to viem when waiting for a proxy write to be mined. */
+export type TransactionReceiptWaitOptions = {
+  confirmations?: number;
+  pollingInterval?: number;
+  timeoutMs?: number;
+};
+
 
