@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { estimateSignupGasUnits } from '../gas-estimates';
+import { estimateSignupGasUnits } from './gas-estimates';
 
 describe('estimateSignupGasUnits', () => {
   it('forwards proxy address and bound account to viem', async () => {
