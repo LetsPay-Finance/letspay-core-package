@@ -1,9 +1,10 @@
-import type { PublicClient, WalletClient } from 'viem';
+import type { PublicClient, WalletClient, Hex, TransactionReceipt } from 'viem';
 import { createPublicClient, createWalletClient, http, custom } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { abi } from './abi/letsPayV1';
+import { waitForProxyReceipt } from './tx-receipt';
 import { ensureKyc, KycCache } from './kyc';
-import type { BrowserConfig, HexAddress, NodeConfig } from './types';
+import type { BrowserConfig, HexAddress, NodeConfig, TransactionReceiptWaitOptions } from './types';
 
 type ReadParams = { requireKyc?: boolean };
 
@@ -95,20 +96,52 @@ export class LetsPayPayments {
     return invoke();
   }
 
-  async signup() {
-    return this.guardedWrite(() =>
+  /** Register the current wallet with the proxy. Pass `waitForReceipt` to await a mined receipt instead of only the tx hash. */
+  async signup(): Promise<Hex>;
+  async signup(opts: { waitForReceipt: TransactionReceiptWaitOptions }): Promise<TransactionReceipt>;
+  async signup(opts?: { waitForReceipt?: TransactionReceiptWaitOptions }): Promise<Hex | TransactionReceipt> {
+    const hash = await this.guardedWrite(() =>
       this.walletClient.writeContract({ address: this.proxyAddress, abi, functionName: 'signup', args: [] })
     );
+    if (opts?.waitForReceipt !== undefined) {
+      return waitForProxyReceipt(this.publicClient, hash, opts.waitForReceipt);
+    }
+    return hash;
   }
 
-  async fundContract(params: { value: bigint }) {
-    return this.guardedWrite(() =>
+  async fundContract(params: { value: bigint }): Promise<Hex>;
+  async fundContract(params: { value: bigint; waitForReceipt: TransactionReceiptWaitOptions }): Promise<TransactionReceipt>;
+  async fundContract(params: { value: bigint; waitForReceipt?: TransactionReceiptWaitOptions }): Promise<Hex | TransactionReceipt> {
+    const hash = await this.guardedWrite(() =>
       this.walletClient.writeContract({ address: this.proxyAddress, abi, functionName: 'fundContract', args: [], value: params.value })
     );
+    if (params.waitForReceipt !== undefined) {
+      return waitForProxyReceipt(this.publicClient, hash, params.waitForReceipt);
+    }
+    return hash;
   }
 
-  async createEscrow(params: { merchant: HexAddress; otherParticipants: HexAddress[]; otherShares: bigint[]; total: bigint }) {
-    return this.guardedWrite(() =>
+  async createEscrow(params: {
+    merchant: HexAddress;
+    otherParticipants: HexAddress[];
+    otherShares: bigint[];
+    total: bigint;
+  }): Promise<Hex>;
+  async createEscrow(params: {
+    merchant: HexAddress;
+    otherParticipants: HexAddress[];
+    otherShares: bigint[];
+    total: bigint;
+    waitForReceipt: TransactionReceiptWaitOptions;
+  }): Promise<TransactionReceipt>;
+  async createEscrow(params: {
+    merchant: HexAddress;
+    otherParticipants: HexAddress[];
+    otherShares: bigint[];
+    total: bigint;
+    waitForReceipt?: TransactionReceiptWaitOptions;
+  }): Promise<Hex | TransactionReceipt> {
+    const hash = await this.guardedWrite(() =>
       this.walletClient.writeContract({
         address: this.proxyAddress,
         abi,
@@ -116,24 +149,46 @@ export class LetsPayPayments {
         args: [params.merchant, params.otherParticipants, params.otherShares, params.total],
       })
     );
+    if (params.waitForReceipt !== undefined) {
+      return waitForProxyReceipt(this.publicClient, hash, params.waitForReceipt);
+    }
+    return hash;
   }
 
-  async accept(params: { escrowId: bigint }) {
-    return this.guardedWrite(() =>
+  async accept(params: { escrowId: bigint }): Promise<Hex>;
+  async accept(params: { escrowId: bigint; waitForReceipt: TransactionReceiptWaitOptions }): Promise<TransactionReceipt>;
+  async accept(params: { escrowId: bigint; waitForReceipt?: TransactionReceiptWaitOptions }): Promise<Hex | TransactionReceipt> {
+    const hash = await this.guardedWrite(() =>
       this.walletClient.writeContract({ address: this.proxyAddress, abi, functionName: 'accept', args: [params.escrowId] })
     );
+    if (params.waitForReceipt !== undefined) {
+      return waitForProxyReceipt(this.publicClient, hash, params.waitForReceipt);
+    }
+    return hash;
   }
 
-  async cancelEscrow(params: { escrowId: bigint }) {
-    return this.guardedWrite(() =>
+  async cancelEscrow(params: { escrowId: bigint }): Promise<Hex>;
+  async cancelEscrow(params: { escrowId: bigint; waitForReceipt: TransactionReceiptWaitOptions }): Promise<TransactionReceipt>;
+  async cancelEscrow(params: { escrowId: bigint; waitForReceipt?: TransactionReceiptWaitOptions }): Promise<Hex | TransactionReceipt> {
+    const hash = await this.guardedWrite(() =>
       this.walletClient.writeContract({ address: this.proxyAddress, abi, functionName: 'cancelEscrow', args: [params.escrowId] })
     );
+    if (params.waitForReceipt !== undefined) {
+      return waitForProxyReceipt(this.publicClient, hash, params.waitForReceipt);
+    }
+    return hash;
   }
 
-  async repayCredit(params: { value: bigint }) {
-    return this.guardedWrite(() =>
+  async repayCredit(params: { value: bigint }): Promise<Hex>;
+  async repayCredit(params: { value: bigint; waitForReceipt: TransactionReceiptWaitOptions }): Promise<TransactionReceipt>;
+  async repayCredit(params: { value: bigint; waitForReceipt?: TransactionReceiptWaitOptions }): Promise<Hex | TransactionReceipt> {
+    const hash = await this.guardedWrite(() =>
       this.walletClient.writeContract({ address: this.proxyAddress, abi, functionName: 'repayCredit', args: [], value: params.value })
     );
+    if (params.waitForReceipt !== undefined) {
+      return waitForProxyReceipt(this.publicClient, hash, params.waitForReceipt);
+    }
+    return hash;
   }
 
   // KYC util
