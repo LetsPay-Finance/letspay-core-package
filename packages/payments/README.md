@@ -24,6 +24,31 @@ const credit = await retryWithBackoff(
 );
 ```
 
+### Explorer links
+
+Configure a template once and reuse it for any transaction hash returned by the SDK:
+
+```ts
+import { formatTxExplorerUrl, type ExplorerChainConfig } from '@letspay-dev/payments';
+
+const hashscan: ExplorerChainConfig = {
+  label: 'HashScan testnet',
+  txUrlTemplate: 'https://hashscan.io/testnet/transaction/{hash}',
+};
+
+const url = formatTxExplorerUrl(hashscan, txHash);
+```
+
+### Gas previews
+
+`LetsPayPayments` exposes `estimate*` helpers that call viem's `estimateContractGas` against the proxy ABI. These calls do **not** submit transactions and do **not** run the KYC gate (they are intended for UI budgeting).
+
+```ts
+const gas = await sdk.estimateFundContractGas({ value: 10_000_000n });
+```
+
+Matching helpers exist for signup, escrow lifecycle methods, and credit repayment.
+
 ## Install
 
 ```bash
@@ -82,6 +107,6 @@ The same option exists on `fundContract`, `repayCredit`, `createEscrow`, `accept
 
 ## API
 
-See `src/client.ts` for full list of methods.
+See `src/client.ts` for write and read helpers. Gas previews live alongside those methods (`estimate*` prefix).
 
 
