@@ -47,4 +47,17 @@ export class TxError extends Error {
   }
 }
 
+/** Template must include the literal `{hash}` token, replaced with a `0x` transaction id. */
+export type ExplorerChainConfig = {
+  label: string;
+  txUrlTemplate: string;
+};
+
+/** Options passed to viem when waiting for a proxy write to be mined. */
+export type TransactionReceiptWaitOptions = {
+  confirmations?: number;
+  pollingInterval?: number;
+  timeoutMs?: number;
+};
+
 
